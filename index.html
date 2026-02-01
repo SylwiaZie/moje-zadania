@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Firmowy System Zadań + Google</title>
+    <style>
+        :root { --primary: #2563eb; --danger: #dc2626; --success: #16a34a; --google: #4285F4; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; display: flex; justify-content: center; padding: 20px; }
+        .app-card { background: white; width: 100%; max-width: 550px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1e293b; }
+        
+        .input-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
+        input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; }
+        .add-btn { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; padding: 12px; }
+
+        ul { list-style: none; padding: 0; }
+        li { border-bottom: 1px solid #f1f5f9; padding: 15px 0; display: flex; align-items: center; gap: 10px; }
+        
+        .task-info { flex-grow: 1; cursor: pointer; }
+        .done { text-decoration: line-through; color: #94a3b8; }
+        
+        .btn-group { display: flex; gap: 5px; }
+        .google-btn { background: var(--google); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75em; text-decoration: none; }
+        .del-btn { background: #fee2e2; color: var(--danger); border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
+        
+        .priority-tag { font-size: 0.6em; padding: 2px 5px; border-radius: 3px; color: white; text-transform: uppercase; }
+        .p-wysoki { background: var(--danger); }
+        .p-sredni { background: #f59e0b; }
+        .p-niski { background: var(--success); }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <h2>Menedżer Zadań PRO</h2>
+    
+    <div class="input-section">
+        <input type="text" id="taskInput" placeholder="Treść zadania...">
+        <select id="priorityInput">
+            <option value="niski">Niski priorytet</option>
+            <option value="sredni">Średni priorytet</option>
+            <option value="wysoki">Wysoki priorytet</option>
+        </select>
+        <button class="add-btn" onclick="addTask()">Dodaj zadanie</button>
+    </div>
+
+    <ul id="taskList"></ul>
+</div>
+
+<script>
+    let tasks = JSON.parse(localStorage.getItem('tasks_google_v1')) || [];
+
+    function addTask() {
+        const text = document.getElementById('taskInput').value;
+        const priority = document.getElementById('priorityInput').value;
+        if (!text) return;
+
+        const newTask = {
+            id: Date.now(),
+            text: text,
+            priority: priority,
+            completed: false
+        };
+
+        tasks.push(newTask);
+        saveAndRender();
+        document.getElementById('taskInput').value = '';
+    }
+
+    // FUNKCJA GENERUJĄCA LINK DO GOOGLE
+    function getGoogleCalendarLink(taskText) {
+        const baseUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE";
+        const title = encodeURIComponent("ZADANIE: " + taskText);
+        // Ustawiamy czas na dzisiaj (format Google: RRRRMMDDTHHMMSSZ)
+        const now = new Date().toISOString().replace(/-|:|\.\d\d\d/g, "");
+        return `${baseUrl}&text=${title}&details=Dodano z aplikacji firmowej&dates=${now}/${now}`;
+    }
+
+    function saveAndRender() {
+        localStorage.setItem('tasks_google_v1', JSON.stringify(tasks));
+        const list = document.getElementById('taskList');
+        list.innerHTML = '';
+
+        tasks.forEach(t => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span class="priority-tag p-${t.priority}">${t.priority[0]}</span>
+                <div class="task-info ${t.completed ? 'done' : ''}" onclick="toggleTask(${t.id})">
+                    ${t.text}
+                </div>
+                <div class="btn-group">
+                    <a href="${getGoogleCalendarLink(t.text)}" target="_blank" class="google-btn">📅 Google</a>
+                    <button class="del-btn" onclick="deleteTask(${t.id})">×</button>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function toggleTask(id) {
+        tasks = tasks.map(t => t.id === id ? {...t, completed: !t.completed} : t);
+        saveAndRender();
+    }
+
+    function deleteTask(id) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveAndRender();
+    }
+
+    saveAndRender();
+</script>
+
+</body>
+</html>

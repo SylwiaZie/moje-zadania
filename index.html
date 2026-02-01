@@ -2,31 +2,51 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <title>Firmowy System Zadań + Google</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firmowy System Zadań PRO</title>
+    
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/4345/4345573.png">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <style>
-        :root { --primary: #2563eb; --danger: #dc2626; --success: #16a34a; --google: #4285F4; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f1f5f9; display: flex; justify-content: center; padding: 20px; }
-        .app-card { background: white; width: 100%; max-width: 550px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #1e293b; }
+        :root { --primary: #2563eb; --danger: #dc2626; --success: #16a34a; --gray: #64748b; --google: #4285F4; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: #f1f5f9; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .app-card { background: white; width: 100%; max-width: 500px; padding: 25px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #1e293b; margin-bottom: 20px; }
+        
+        .stats { display: flex; justify-content: space-around; margin-bottom: 20px; font-size: 0.9em; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
         
         .input-section { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; }
-        .add-btn { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; padding: 12px; }
+        input, select { padding: 12px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; outline: none; }
+        input:focus { border-color: var(--primary); }
+        .add-btn { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; border-radius: 8px; padding: 12px; transition: 0.2s; }
+        .add-btn:hover { background: #1d4ed8; }
+
+        .tools { display: flex; gap: 10px; margin-bottom: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        .tool-btn { background: #334155; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; flex-grow: 1; font-size: 0.8em; }
+
+        .filters { display: flex; gap: 5px; margin-bottom: 15px; }
+        .filter-btn { flex: 1; padding: 8px; font-size: 0.8em; cursor: pointer; background: #e2e8f0; border: none; border-radius: 6px; }
+        .filter-btn.active { background: var(--primary); color: white; }
 
         ul { list-style: none; padding: 0; }
-        li { border-bottom: 1px solid #f1f5f9; padding: 15px 0; display: flex; align-items: center; gap: 10px; }
-        
+        li { border-bottom: 1px solid #f1f5f9; padding: 12px 0; display: flex; align-items: center; gap: 12px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
         .task-info { flex-grow: 1; cursor: pointer; }
-        .done { text-decoration: line-through; color: #94a3b8; }
+        .task-info.done { text-decoration: line-through; color: #94a3b8; }
         
-        .btn-group { display: flex; gap: 5px; }
-        .google-btn { background: var(--google); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.75em; text-decoration: none; }
-        .del-btn { background: #fee2e2; color: var(--danger); border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; }
-        
-        .priority-tag { font-size: 0.6em; padding: 2px 5px; border-radius: 3px; color: white; text-transform: uppercase; }
+        .priority-tag { font-size: 0.65em; padding: 3px 8px; border-radius: 4px; color: white; text-transform: uppercase; font-weight: bold; min-width: 50px; text-align: center; }
         .p-wysoki { background: var(--danger); }
         .p-sredni { background: #f59e0b; }
         .p-niski { background: var(--success); }
+        
+        .date { font-size: 0.7em; color: #94a3b8; display: block; margin-top: 4px; }
+        .btn-group { display: flex; gap: 5px; }
+        .google-link { background: var(--google); color: white; text-decoration: none; padding: 5px 8px; border-radius: 4px; font-size: 0.7em; font-weight: bold; }
+        .del-btn { background: #fee2e2; color: var(--danger); border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -34,67 +54,62 @@
 <div class="app-card">
     <h2>Menedżer Zadań PRO</h2>
     
+    <div class="stats">
+        <span>Wszystkie: <b id="totalCount">0</b></span>
+        <span>Do zrobienia: <b id="todoCount">0</b></span>
+    </div>
+
     <div class="input-section">
-        <input type="text" id="taskInput" placeholder="Treść zadania...">
+        <input type="text" id="taskInput" placeholder="Co jest do zrobienia?">
         <select id="priorityInput">
-            <option value="niski">Niski priorytet</option>
-            <option value="sredni">Średni priorytet</option>
-            <option value="wysoki">Wysoki priorytet</option>
+            <option value="niski">Priorytet: Niski</option>
+            <option value="sredni">Priorytet: Średni</option>
+            <option value="wysoki">Priorytet: Wysoki</option>
         </select>
-        <button class="add-btn" onclick="addTask()">Dodaj zadanie</button>
+        <button class="add-btn" onclick="addTask()">+ Dodaj zadanie</button>
+    </div>
+
+    <div class="tools">
+        <button class="tool-btn" onclick="exportToText()">📥 Pobierz raport (.txt)</button>
+        <button class="tool-btn" style="background:#64748b" onclick="clearAll()">🗑️ Wyczyść listę</button>
+    </div>
+
+    <div class="filters">
+        <button class="filter-btn active" onclick="updateFilter('all', this)">Wszystkie</button>
+        <button class="filter-btn" onclick="updateFilter('active', this)">W toku</button>
+        <button class="filter-btn" onclick="updateFilter('completed', this)">Gotowe</button>
     </div>
 
     <ul id="taskList"></ul>
 </div>
 
 <script>
-    let tasks = JSON.parse(localStorage.getItem('tasks_google_v1')) || [];
+    let tasks = JSON.parse(localStorage.getItem('final_tasks_v4')) || [];
+    let currentFilter = 'all';
 
     function addTask() {
-        const text = document.getElementById('taskInput').value;
+        const input = document.getElementById('taskInput');
         const priority = document.getElementById('priorityInput').value;
-        if (!text) return;
+        if (!input.value.trim()) return;
 
         const newTask = {
             id: Date.now(),
-            text: text,
+            text: input.value,
             priority: priority,
-            completed: false
+            completed: false,
+            date: new Date().toLocaleString()
         };
 
         tasks.push(newTask);
+        input.value = '';
         saveAndRender();
-        document.getElementById('taskInput').value = '';
     }
 
-    // FUNKCJA GENERUJĄCA LINK DO GOOGLE
     function getGoogleCalendarLink(taskText) {
         const baseUrl = "https://calendar.google.com/calendar/render?action=TEMPLATE";
         const title = encodeURIComponent("ZADANIE: " + taskText);
-        // Ustawiamy czas na dzisiaj (format Google: RRRRMMDDTHHMMSSZ)
         const now = new Date().toISOString().replace(/-|:|\.\d\d\d/g, "");
         return `${baseUrl}&text=${title}&details=Dodano z aplikacji firmowej&dates=${now}/${now}`;
-    }
-
-    function saveAndRender() {
-        localStorage.setItem('tasks_google_v1', JSON.stringify(tasks));
-        const list = document.getElementById('taskList');
-        list.innerHTML = '';
-
-        tasks.forEach(t => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <span class="priority-tag p-${t.priority}">${t.priority[0]}</span>
-                <div class="task-info ${t.completed ? 'done' : ''}" onclick="toggleTask(${t.id})">
-                    ${t.text}
-                </div>
-                <div class="btn-group">
-                    <a href="${getGoogleCalendarLink(t.text)}" target="_blank" class="google-btn">📅 Google</a>
-                    <button class="del-btn" onclick="deleteTask(${t.id})">×</button>
-                </div>
-            `;
-            list.appendChild(li);
-        });
     }
 
     function toggleTask(id) {
@@ -103,12 +118,19 @@
     }
 
     function deleteTask(id) {
-        tasks = tasks.filter(t => t.id !== id);
-        saveAndRender();
+        if(confirm("Usunąć to zadanie?")) {
+            tasks = tasks.filter(t => t.id !== id);
+            saveAndRender();
+        }
     }
 
-    saveAndRender();
-</script>
+    function clearAll() {
+        if(confirm("Czy na pewno chcesz usunąć WSZYSTKIE zadania z listy?")) {
+            tasks = [];
+            saveAndRender();
+        }
+    }
 
-</body>
-</html>
+    function exportToText() {
+        if (tasks.length === 0) return alert("Brak zadań do pobrania!");
+        let content = "RAPORT ZADAŃ FIRMOWYCH\n" + "===========================\n\n
